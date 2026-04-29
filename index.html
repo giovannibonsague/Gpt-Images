@@ -15,7 +15,6 @@
   }
   body { font-family: 'Libre Baskerville', Georgia, serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
 
-  /* SIDEBAR */
   .sidebar { width: var(--sidebar-w); background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; position: relative; z-index: 10; }
   .sidebar::after { content: ''; position: absolute; top: 0; right: -1px; width: 1px; height: 100%; background: linear-gradient(to bottom, transparent, var(--gold-dim) 30%, var(--gold-dim) 70%, transparent); opacity: 0.4; }
   .sidebar-header { padding: 28px 20px 20px; border-bottom: 1px solid var(--border); }
@@ -46,7 +45,7 @@
   .image-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 5px; cursor: pointer; transition: background 0.15s; border: 1px solid transparent; }
   .image-item:hover { background: var(--surface); border-color: var(--border); }
   .image-item.active { background: var(--surface2); border-color: var(--gold-dim); }
-  .image-thumb { width: 38px; height: 38px; border-radius: 3px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
+  .image-thumb { width: 38px; height: 38px; border-radius: 3px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; background: var(--surface2); }
   .image-info { flex: 1; min-width: 0; }
   .image-name { font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; margin-bottom: 2px; }
   .image-meta { font-size: 10px; color: var(--text-faint); font-style: italic; }
@@ -55,7 +54,6 @@
   .image-del:hover { opacity: 1 !important; }
   .empty-list { text-align: center; padding: 30px 20px; color: var(--text-faint); font-size: 12px; font-style: italic; line-height: 1.8; }
 
-  /* MAIN */
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); position: relative; }
   .main::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; opacity: 0.4; }
   .main-header { padding: 24px 36px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
@@ -86,7 +84,7 @@
   .card-meta { font-size: 11px; color: var(--text-faint); font-style: italic; }
 
   .single-view { display: flex; gap: 36px; min-height: 100%; align-items: flex-start; }
-  .single-img-panel { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .single-img-panel { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 300px; }
   .single-img-panel img { max-width: 100%; max-height: calc(100vh - 200px); border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 20px 80px rgba(0,0,0,0.7); }
   .single-info-panel { width: 280px; flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 24px; }
 
@@ -107,18 +105,20 @@
   .list-row { display: flex; align-items: center; gap: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 12px 16px; cursor: pointer; transition: all 0.15s; animation: fadeUp 0.3s ease forwards; opacity: 0; }
   .list-row:hover { border-color: var(--gold-dim); }
   .list-row.active { border-color: var(--gold); }
-  .list-row img { width: 52px; height: 52px; object-fit: cover; border-radius: 3px; border: 1px solid var(--border); flex-shrink: 0; }
+  .list-row img { width: 52px; height: 52px; object-fit: cover; border-radius: 3px; border: 1px solid var(--border); flex-shrink: 0; background: var(--surface2); }
   .list-info { flex: 1; }
   .list-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
   .list-meta { font-size: 11px; color: var(--text-faint); font-style: italic; }
 
   .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface2); border: 1px solid var(--gold-dim); color: var(--gold-light); font-family: 'Libre Baskerville', serif; font-size: 12px; padding: 10px 18px; border-radius: 5px; z-index: 9999; animation: slideIn 0.3s ease; pointer-events: none; font-style: italic; }
   @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .loading-spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
-<!-- Firebase SDK — Realtime Database only, no Storage needed -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
   import { getDatabase, ref, set, get, remove, onValue, update }
@@ -138,63 +138,44 @@
   const app = initializeApp(cfg);
   const db  = getDatabase(app);
 
-  // Chunk size: 750 KB of base64 chars safely under RTDB's 10 MB node limit
-  const CHUNK = 750_000;
-
-  // Save image: metadata node + chunked base64 nodes
+  // Save full image object (metadata + base64 data) as one node
   window.fbSaveImage = async (img) => {
-    const { data, ...meta } = img; // strip data from meta
-    meta.chunks = Math.ceil(data.length / CHUNK);
-
-    // Write all chunks in parallel
-    const chunkWrites = [];
-    for (let c = 0; c < meta.chunks; c++) {
-      const slice = data.slice(c * CHUNK, (c + 1) * CHUNK);
-      chunkWrites.push(set(ref(db, `gpt-images-chunks/${img.id}/${c}`), slice));
-    }
-    // Write metadata and all chunks concurrently
-    await Promise.all([
-      set(ref(db, `gpt-images/${img.id}`), meta),
-      ...chunkWrites
-    ]);
-    return meta;
+    await set(ref(db, `gpt-images/${img.id}`), img);
   };
 
-  // Delete image: metadata + all chunks
+  // Delete image node
   window.fbDeleteImage = async (id) => {
-    await Promise.all([
-      remove(ref(db, `gpt-images/${id}`)),
-      remove(ref(db, `gpt-images-chunks/${id}`))
-    ]);
+    await remove(ref(db, `gpt-images/${id}`));
   };
 
-  // Rename (update name field only)
+  // Rename
   window.fbRename = async (id, newName) => {
     await update(ref(db, `gpt-images/${id}`), { name: newName });
   };
 
-  // Reassemble base64 from chunks
-  window.fbLoadImageData = async (id, numChunks) => {
-    const snap = await get(ref(db, `gpt-images-chunks/${id}`));
-    if (!snap.exists()) return null;
-    const chunkMap = snap.val();
-    let data = '';
-    for (let c = 0; c < numChunks; c++) data += (chunkMap[c] || '');
-    return data;
+  // Load a single image (returns full object including data)
+  window.fbLoadImage = async (id) => {
+    const snap = await get(ref(db, `gpt-images/${id}`));
+    return snap.exists() ? snap.val() : null;
   };
 
-  // Real-time metadata listener (no base64 data here — fast!)
+  // Real-time listener on metadata only (we store data separately so UI stays fast)
+  // Actually we store everything together, so listener gives us everything
   onValue(ref(db, 'gpt-images'), (snap) => {
-    const data = snap.val();
-    window._imageMetas = data ? Object.values(data).sort((a,b) => b.ts - a.ts) : [];
-    if (window._onMetaUpdate) window._onMetaUpdate(window._imageMetas);
+    const val = snap.val();
+    if (val) {
+      // Build list with data included
+      window._allImages = Object.values(val).sort((a, b) => b.ts - a.ts);
+    } else {
+      window._allImages = [];
+    }
+    if (window._onImagesUpdate) window._onImagesUpdate(window._allImages);
   });
 
   window._firebaseReady = true;
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 
-<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-header">
     <div class="logo">GPT Images<span>Image Vault & Manager</span></div>
@@ -214,11 +195,10 @@
   </div>
   <div class="sidebar-section-label">Library <span id="countBadge"></span></div>
   <div class="image-list" id="imageList">
-    <div class="empty-list">Loading…</div>
+    <div class="empty-list">Connecting…</div>
   </div>
 </aside>
 
-<!-- MAIN -->
 <main class="main">
   <div class="main-header">
     <div class="main-title" id="mainTitle"><span>GPT Images</span></div>
@@ -232,20 +212,17 @@
       <div class="welcome-icon">🖼</div>
       <h1>GPT Images<em>Your Personal Image Vault</em></h1>
       <div class="divider"></div>
-      <p>Upload images from the sidebar. Each image is stored as Base64 directly in Firebase and synced across all devices.</p>
+      <p>Upload images from the sidebar. Each image is saved as Base64 in Firebase and instantly available across all devices.</p>
     </div>
   </div>
 </main>
 
 <script>
-// images = array of meta objects; loaded data cached in imageDataCache
-let images        = [];
-let selected      = null;
-let viewMode      = 'grid';
-let searchQ       = '';
-const imageDataCache = {}; // id -> base64 data URL
+let images   = [];
+let selected = null;
+let viewMode = 'grid';
+let searchQ  = '';
 
-/* ─── Helpers ─── */
 function toast(msg) {
   const el = document.createElement('div');
   el.className = 'toast'; el.textContent = msg;
@@ -270,38 +247,36 @@ function showProgress(show) {
   document.getElementById('uploadProgress').style.display = show ? 'block' : 'none';
 }
 function setProgress(pct, label) {
-  document.getElementById('progressBar').style.width  = pct + '%';
+  document.getElementById('progressBar').style.width = pct + '%';
   document.getElementById('progressLabel').textContent = label;
 }
 
-/* ─── Get image src (from cache or load) ─── */
-async function getImageSrc(meta) {
-  if (imageDataCache[meta.id]) return imageDataCache[meta.id];
-  try {
-    const data = await window.fbLoadImageData(meta.id, meta.chunks);
-    if (data) { imageDataCache[meta.id] = data; return data; }
-  } catch(e) { console.warn('Load failed', e); }
-  return '';
-}
-
-/* ─── Preload thumbnails into cache then re-render ─── */
-async function preloadAll(metas) {
-  const uncached = metas.filter(m => !imageDataCache[m.id]);
-  await Promise.all(uncached.map(m => getImageSrc(m)));
-  render();
-}
-
-/* ─── Convert file to base64 ─── */
-function fileToBase64(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload  = e => res(e.target.result);
-    r.onerror = rej;
-    r.readAsDataURL(file);
+/* Resize image to cap base64 size — keeps RTDB writes small */
+function resizeAndEncode(file, maxDim = 1600) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+          else                { width  = Math.round(width  * maxDim / height); height = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        // Use jpeg for photos (smaller), png for transparency
+        const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        resolve(canvas.toDataURL(mime, 0.85));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
   });
 }
 
-/* ─── Upload ─── */
+/* Upload */
 async function handleFiles(files) {
   const arr = Array.from(files).filter(f => f.type.startsWith('image/'));
   if (!arr.length) return;
@@ -310,18 +285,20 @@ async function handleFiles(files) {
     const file = arr[i];
     setProgress(Math.round((i / arr.length) * 90), `Uploading ${i+1}/${arr.length}: ${file.name}`);
     try {
-      const b64 = await fileToBase64(file);
-      const img = {
+      const data = await resizeAndEncode(file);
+      const img  = {
         id:   Date.now() + '_' + Math.random().toString(36).slice(2),
         name: file.name.replace(/\.[^.]+$/, ''),
         ext:  file.name.split('.').pop(),
-        type: file.type, size: file.size, ts: Date.now(), data: b64
+        type: file.type,
+        size: file.size,
+        ts:   Date.now(),
+        data  // base64 data URL
       };
-      imageDataCache[img.id] = b64; // cache before saving
       await window.fbSaveImage(img);
       toast('✓ Saved: ' + img.name);
-    } catch(e) {
-      toast('✗ Failed: ' + file.name + ' — ' + e.message);
+    } catch (e) {
+      toast('✗ Failed: ' + file.name);
       console.error(e);
     }
   }
@@ -329,51 +306,36 @@ async function handleFiles(files) {
   setTimeout(() => { showProgress(false); setProgress(0, ''); }, 800);
 }
 
-/* ─── Delete ─── */
 async function deleteImage(id) {
-  delete imageDataCache[id];
   await window.fbDeleteImage(id);
   if (selected === id) selected = null;
   toast('Image deleted.');
 }
 
-/* ─── Select ─── */
 function selectImage(id) {
   selected = id;
   render();
-  // If detail view needs data, load and re-render
-  const meta = images.find(i => i.id === id);
-  if (meta && !imageDataCache[id]) {
-    getImageSrc(meta).then(() => render());
-  }
 }
 
-/* ─── Rename ─── */
 async function renameImage(id, newName) {
   if (!newName.trim()) return;
   await window.fbRename(id, newName.trim());
   toast('Renamed to: ' + newName.trim());
 }
 
-/* ─── Download ─── */
-async function downloadImage(id) {
-  const meta = images.find(i => i.id === id);
-  if (!meta) return;
-  const src = await getImageSrc(meta);
-  if (!src) { toast('⚠ Image data not loaded yet.'); return; }
+function downloadImage(id) {
+  const img = images.find(i => i.id === id);
+  if (!img?.data) return;
   const a = document.createElement('a');
-  a.href = src; a.download = meta.name + '.' + (meta.ext || 'png'); a.click();
+  a.href = img.data; a.download = img.name + '.' + (img.ext || 'png'); a.click();
   toast('Downloading…');
 }
 
-/* ─── Copy as real image (PNG) ─── */
 async function copyImage(id) {
-  const meta = images.find(i => i.id === id);
-  if (!meta) return;
-  const src = await getImageSrc(meta);
-  if (!src) { toast('⚠ Image not loaded yet.'); return; }
+  const img = images.find(i => i.id === id);
+  if (!img?.data) { toast('Image not loaded.'); return; }
   try {
-    const res  = await fetch(src);
+    const res  = await fetch(img.data);
     const blob = await res.blob();
     const bmp  = await createImageBitmap(blob);
     const cv   = document.createElement('canvas');
@@ -388,42 +350,42 @@ async function copyImage(id) {
       }
     }, 'image/png');
   } catch(e) {
-    toast('⚠ Could not copy image.'); console.error(e);
+    toast('⚠ Could not copy.'); console.error(e);
   }
 }
 
-/* ─── Copy Base64 string ─── */
-async function copyBase64(id) {
-  const meta = images.find(i => i.id === id);
-  if (!meta) return;
-  const src = await getImageSrc(meta);
-  if (!src) { toast('⚠ Image not loaded.'); return; }
-  navigator.clipboard.writeText(src)
-    .then(() => toast('Base64 string copied!'))
+function copyBase64(id) {
+  const img = images.find(i => i.id === id);
+  if (!img?.data) { toast('Image not loaded.'); return; }
+  navigator.clipboard.writeText(img.data)
+    .then(() => toast('Base64 copied!'))
     .catch(() => toast('⚠ Clipboard denied.'));
 }
 
-/* ─── Render sidebar ─── */
+/* ── Render ── */
 function renderSidebar() {
   const list     = document.getElementById('imageList');
   const filtered = getFiltered();
   document.getElementById('countBadge').textContent = images.length || '';
-  if (images.length === 0) { list.innerHTML = '<div class="empty-list">No images yet.<br>Upload one to begin.</div>'; return; }
-  if (filtered.length === 0) { list.innerHTML = '<div class="empty-list">No results found.</div>'; return; }
-  list.innerHTML = filtered.map(img => {
-    const src = imageDataCache[img.id] || '';
-    return `<div class="image-item ${selected===img.id?'active':''}" onclick="selectImage('${img.id}')">
-      <img class="image-thumb" src="${src}" alt="${img.name}">
+  if (images.length === 0) {
+    list.innerHTML = '<div class="empty-list">No images yet.<br>Upload one to begin.</div>';
+    return;
+  }
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-list">No results found.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(img => `
+    <div class="image-item ${selected === img.id ? 'active' : ''}" onclick="selectImage('${img.id}')">
+      <img class="image-thumb" src="${img.data || ''}" alt="${img.name}">
       <div class="image-info">
         <div class="image-name">${img.name}</div>
         <div class="image-meta">${fmtBytes(img.size)}</div>
       </div>
       <button class="image-del" onclick="event.stopPropagation();deleteImage('${img.id}')">✕</button>
-    </div>`;
-  }).join('');
+    </div>`).join('');
 }
 
-/* ─── Render main ─── */
 function renderMain() {
   const canvas   = document.getElementById('canvas');
   const titleEl  = document.getElementById('mainTitle');
@@ -431,12 +393,11 @@ function renderMain() {
   const selImg   = images.find(i => i.id === selected);
 
   if (selImg) {
-    const src = imageDataCache[selImg.id] || '';
     titleEl.innerHTML = `<span>${selImg.name}</span>`;
     canvas.innerHTML  = `
       <div class="single-view">
         <div class="single-img-panel">
-          ${src ? `<img src="${src}" alt="${selImg.name}">` : `<div style="color:var(--text-faint);font-style:italic;font-size:13px">Loading image…</div>`}
+          <img src="${selImg.data || ''}" alt="${selImg.name}">
         </div>
         <div class="single-info-panel">
           <div class="info-label">Name</div>
@@ -446,7 +407,7 @@ function renderMain() {
           <div class="info-label">Uploaded</div>
           <div class="info-value">${fmtDate(selImg.ts)}</div>
           <div class="info-label">Type</div>
-          <div class="info-value">${selImg.type||'—'}</div>
+          <div class="info-value">${selImg.type || '—'}</div>
           <button class="btn btn-gold"    onclick="renameImage('${selImg.id}', document.getElementById('renameField').value)">✎ &nbsp;Save Name</button>
           <button class="btn btn-outline" onclick="copyImage('${selImg.id}')">⎘ &nbsp;Copy Image</button>
           <button class="btn btn-outline" onclick="copyBase64('${selImg.id}')">❝ &nbsp;Copy as Base64</button>
@@ -464,57 +425,52 @@ function renderMain() {
         <div class="welcome-icon">🖼</div>
         <h1>GPT Images<em>Your Personal Image Vault</em></h1>
         <div class="divider"></div>
-        <p>Upload images from the sidebar. Each image is stored as Base64 directly in Firebase and synced across all devices.</p>
+        <p>Upload images from the sidebar. Each image is saved as Base64 in Firebase and instantly available across all devices.</p>
       </div>`;
     return;
   }
 
-  titleEl.innerHTML = `<span style="color:var(--text-muted)">Gallery</span>&nbsp;<span style="font-size:10px;color:var(--text-faint);letter-spacing:0.2em">${filtered.length} image${filtered.length!==1?'s':''}</span>`;
+  titleEl.innerHTML = `<span style="color:var(--text-muted)">Gallery</span>&nbsp;<span style="font-size:10px;color:var(--text-faint);letter-spacing:0.2em">${filtered.length} image${filtered.length !== 1 ? 's' : ''}</span>`;
 
   if (viewMode === 'grid') {
-    canvas.innerHTML = `<div class="grid">${filtered.map((img,i) => {
-      const src = imageDataCache[img.id] || '';
-      return `<div class="grid-card ${selected===img.id?'active':''}" style="animation-delay:${i*0.05}s" onclick="selectImage('${img.id}')">
-        <div class="card-img-wrap"><img src="${src}" alt="${img.name}" loading="lazy"></div>
+    canvas.innerHTML = `<div class="grid">${filtered.map((img, i) => `
+      <div class="grid-card ${selected === img.id ? 'active' : ''}" style="animation-delay:${i * 0.05}s" onclick="selectImage('${img.id}')">
+        <div class="card-img-wrap"><img src="${img.data || ''}" alt="${img.name}" loading="lazy"></div>
         <div class="card-body">
           <div class="card-name">${img.name}</div>
           <div class="card-meta">${fmtBytes(img.size)} · ${fmtDate(img.ts)}</div>
         </div>
-      </div>`;
-    }).join('')}</div>`;
+      </div>`).join('')}</div>`;
   } else {
-    canvas.innerHTML = `<div class="list-view">${filtered.map((img,i) => {
-      const src = imageDataCache[img.id] || '';
-      return `<div class="list-row ${selected===img.id?'active':''}" style="animation-delay:${i*0.04}s" onclick="selectImage('${img.id}')">
-        <img src="${src}" alt="${img.name}">
+    canvas.innerHTML = `<div class="list-view">${filtered.map((img, i) => `
+      <div class="list-row ${selected === img.id ? 'active' : ''}" style="animation-delay:${i * 0.04}s" onclick="selectImage('${img.id}')">
+        <img src="${img.data || ''}" alt="${img.name}">
         <div class="list-info">
           <div class="list-name">${img.name}</div>
-          <div class="list-meta">${fmtBytes(img.size)} · ${img.type||''} · ${fmtDate(img.ts)}</div>
+          <div class="list-meta">${fmtBytes(img.size)} · ${fmtDate(img.ts)}</div>
         </div>
         <button class="image-del" style="opacity:0.5" onclick="event.stopPropagation();deleteImage('${img.id}')">✕</button>
-      </div>`;
-    }).join('')}</div>`;
+      </div>`).join('')}</div>`;
   }
 }
 
 function render() { renderSidebar(); renderMain(); }
 
-/* ─── Events ─── */
+/* ── Events ── */
 document.getElementById('fileInput').addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
 const uz = document.getElementById('uploadZone');
 uz.addEventListener('dragover',  e => { e.preventDefault(); uz.classList.add('drag-over'); });
 uz.addEventListener('dragleave', ()  => uz.classList.remove('drag-over'));
 uz.addEventListener('drop', e => { e.preventDefault(); uz.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
 document.getElementById('searchInput').addEventListener('input', e => { searchQ = e.target.value; render(); });
-document.getElementById('btnGrid').addEventListener('click', () => { viewMode='grid'; document.getElementById('btnGrid').classList.add('active'); document.getElementById('btnList').classList.remove('active'); render(); });
-document.getElementById('btnList').addEventListener('click', () => { viewMode='list'; document.getElementById('btnList').classList.add('active'); document.getElementById('btnGrid').classList.remove('active'); render(); });
+document.getElementById('btnGrid').addEventListener('click', () => { viewMode = 'grid'; document.getElementById('btnGrid').classList.add('active'); document.getElementById('btnList').classList.remove('active'); render(); });
+document.getElementById('btnList').addEventListener('click', () => { viewMode = 'list'; document.getElementById('btnList').classList.add('active'); document.getElementById('btnGrid').classList.remove('active'); render(); });
 
-/* ─── Firebase metadata update ─── */
-window._onMetaUpdate = async (metas) => {
-  images = metas;
+/* ── Firebase callback ── */
+window._onImagesUpdate = (imgs) => {
+  images = imgs;
   if (selected && !images.find(i => i.id === selected)) selected = null;
-  render(); // show names/meta immediately
-  await preloadAll(metas); // then load image data in background
+  render();
 };
 
 window.addEventListener('firebase-ready', render);
