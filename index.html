@@ -19,9 +19,9 @@
   .sidebar::after { content: ''; position: absolute; top: 0; right: -1px; width: 1px; height: 100%; background: linear-gradient(to bottom, transparent, var(--gold-dim) 30%, var(--gold-dim) 70%, transparent); opacity: 0.4; }
   .sidebar-header { padding: 28px 20px 20px; border-bottom: 1px solid var(--border); }
   .logo { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 900; letter-spacing: 0.12em; color: var(--gold); text-transform: uppercase; line-height: 1.1; }
-  .logo span { display: block; font-size: 10px; font-weight: 400; color: var(--text-muted); letter-spacing: 0.25em; margin-top: 4px; font-family: 'Libre Baskerville', serif; font-style: italic; }
+  .logo span { display: block; font-size: 10px; color: var(--text-muted); letter-spacing: 0.25em; margin-top: 4px; font-family: 'Libre Baskerville', serif; font-style: italic; }
 
-  .upload-zone { margin: 16px; border: 1.5px dashed var(--gold-dim); border-radius: 6px; padding: 20px 12px; text-align: center; cursor: pointer; transition: all 0.25s ease; background: rgba(201,168,76,0.03); position: relative; }
+  .upload-zone { margin: 16px; border: 1.5px dashed var(--gold-dim); border-radius: 6px; padding: 20px 12px; text-align: center; cursor: pointer; transition: all 0.25s; background: rgba(201,168,76,0.03); position: relative; }
   .upload-zone:hover, .upload-zone.drag-over { border-color: var(--gold); background: rgba(201,168,76,0.07); }
   .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
   .upload-icon { font-size: 26px; margin-bottom: 8px; display: block; opacity: 0.7; }
@@ -67,7 +67,7 @@
   .welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; gap: 20px; }
   .welcome-icon { font-size: 52px; opacity: 0.2; }
   .welcome h1 { font-family: 'Cinzel', serif; font-size: 32px; font-weight: 900; letter-spacing: 0.08em; color: var(--gold); line-height: 1.1; }
-  .welcome h1 em { display: block; font-size: 13px; font-weight: 400; color: var(--text-faint); letter-spacing: 0.3em; font-style: italic; margin-top: 8px; font-family: 'Libre Baskerville', serif; }
+  .welcome h1 em { display: block; font-size: 13px; color: var(--text-faint); letter-spacing: 0.3em; font-style: italic; margin-top: 8px; font-family: 'Libre Baskerville', serif; }
   .welcome p { font-size: 14px; color: var(--text-muted); max-width: 380px; line-height: 1.8; font-style: italic; }
   .divider { width: 60px; height: 1px; background: linear-gradient(to right, transparent, var(--gold-dim), transparent); }
 
@@ -87,7 +87,6 @@
   .single-img-panel { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 300px; }
   .single-img-panel img { max-width: 100%; max-height: calc(100vh - 200px); border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 20px 80px rgba(0,0,0,0.7); }
   .single-info-panel { width: 280px; flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 24px; }
-
   .info-label { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.3em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 5px; }
   .info-value { font-size: 13px; color: var(--text); margin-bottom: 18px; line-height: 1.6; }
 
@@ -98,7 +97,6 @@
   .btn-outline:hover { border-color: var(--gold-dim); color: var(--gold); }
   .btn-danger { background: transparent; border: 1px solid rgba(192,57,43,0.3); color: var(--red); }
   .btn-danger:hover { background: rgba(192,57,43,0.1); border-color: var(--red); }
-
   .rename-input { width: 100%; background: var(--bg); border: 1px solid var(--gold-dim); border-radius: 4px; padding: 7px 10px; color: var(--text); font-family: 'Libre Baskerville', serif; font-size: 13px; outline: none; margin-bottom: 10px; }
 
   .list-view { display: flex; flex-direction: column; gap: 10px; }
@@ -112,69 +110,9 @@
 
   .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface2); border: 1px solid var(--gold-dim); color: var(--gold-light); font-family: 'Libre Baskerville', serif; font-size: 12px; padding: 10px 18px; border-radius: 5px; z-index: 9999; animation: slideIn 0.3s ease; pointer-events: none; font-style: italic; }
   @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-  .loading-spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-  import { getDatabase, ref, set, get, remove, onValue, update }
-    from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
-
-  const cfg = {
-    apiKey:            "AIzaSyBKziunu6K2pdqOrGMAQ8pijxIGYy64k9o",
-    authDomain:        "micro-tools-3fc9e.firebaseapp.com",
-    databaseURL:       "https://micro-tools-3fc9e-default-rtdb.firebaseio.com",
-    projectId:         "micro-tools-3fc9e",
-    storageBucket:     "micro-tools-3fc9e.firebasestorage.app",
-    messagingSenderId: "986636896646",
-    appId:             "1:986636896646:web:e54cfb79dc2a4003958407",
-    measurementId:     "G-HMRTKMZ5KD"
-  };
-
-  const app = initializeApp(cfg);
-  const db  = getDatabase(app);
-
-  // Save full image object (metadata + base64 data) as one node
-  window.fbSaveImage = async (img) => {
-    await set(ref(db, `gpt-images/${img.id}`), img);
-  };
-
-  // Delete image node
-  window.fbDeleteImage = async (id) => {
-    await remove(ref(db, `gpt-images/${id}`));
-  };
-
-  // Rename
-  window.fbRename = async (id, newName) => {
-    await update(ref(db, `gpt-images/${id}`), { name: newName });
-  };
-
-  // Load a single image (returns full object including data)
-  window.fbLoadImage = async (id) => {
-    const snap = await get(ref(db, `gpt-images/${id}`));
-    return snap.exists() ? snap.val() : null;
-  };
-
-  // Real-time listener on metadata only (we store data separately so UI stays fast)
-  // Actually we store everything together, so listener gives us everything
-  onValue(ref(db, 'gpt-images'), (snap) => {
-    const val = snap.val();
-    if (val) {
-      // Build list with data included
-      window._allImages = Object.values(val).sort((a, b) => b.ts - a.ts);
-    } else {
-      window._allImages = [];
-    }
-    if (window._onImagesUpdate) window._onImagesUpdate(window._allImages);
-  });
-
-  window._firebaseReady = true;
-  window.dispatchEvent(new Event('firebase-ready'));
-</script>
 
 <aside class="sidebar">
   <div class="sidebar-header">
@@ -217,12 +155,32 @@
   </div>
 </main>
 
-<script>
+<!-- ONE unified module script — no timing race conditions -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { getDatabase, ref, set, remove, onValue, update }
+  from "https://www.gstatic.com/firebasejs/12.12.1/firebase-database.js";
+
+/* ── Firebase init ── */
+const app = initializeApp({
+  apiKey:            "AIzaSyBKziunu6K2pdqOrGMAQ8pijxIGYy64k9o",
+  authDomain:        "micro-tools-3fc9e.firebaseapp.com",
+  databaseURL:       "https://micro-tools-3fc9e-default-rtdb.firebaseio.com",
+  projectId:         "micro-tools-3fc9e",
+  storageBucket:     "micro-tools-3fc9e.firebasestorage.app",
+  messagingSenderId: "986636896646",
+  appId:             "1:986636896646:web:e54cfb79dc2a4003958407",
+  measurementId:     "G-HMRTKMZ5KD"
+});
+const db = getDatabase(app);
+
+/* ── State ── */
 let images   = [];
 let selected = null;
 let viewMode = 'grid';
 let searchQ  = '';
 
+/* ── Helpers ── */
 function toast(msg) {
   const el = document.createElement('div');
   el.className = 'toast'; el.textContent = msg;
@@ -232,11 +190,11 @@ function toast(msg) {
 function fmtBytes(b) {
   if (!b) return '';
   if (b < 1024) return b + ' B';
-  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
-  return (b/1048576).toFixed(1) + ' MB';
+  if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+  return (b / 1048576).toFixed(1) + ' MB';
 }
 function fmtDate(ts) {
-  return new Date(ts).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 function getFiltered() {
   if (!searchQ) return images;
@@ -251,12 +209,14 @@ function setProgress(pct, label) {
   document.getElementById('progressLabel').textContent = label;
 }
 
-/* Resize image to cap base64 size — keeps RTDB writes small */
+/* ── Resize + encode to base64 ── */
 function resizeAndEncode(file, maxDim = 1600) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
+    reader.onerror = reject;
     reader.onload = (e) => {
       const img = new Image();
+      img.onerror = reject;
       img.onload = () => {
         let { width, height } = img;
         if (width > maxDim || height > maxDim) {
@@ -266,7 +226,6 @@ function resizeAndEncode(file, maxDim = 1600) {
         const canvas = document.createElement('canvas');
         canvas.width = width; canvas.height = height;
         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        // Use jpeg for photos (smaller), png for transparency
         const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
         resolve(canvas.toDataURL(mime, 0.85));
       };
@@ -276,64 +235,78 @@ function resizeAndEncode(file, maxDim = 1600) {
   });
 }
 
-/* Upload */
+/* ── Upload ── */
 async function handleFiles(files) {
   const arr = Array.from(files).filter(f => f.type.startsWith('image/'));
   if (!arr.length) return;
   showProgress(true);
   for (let i = 0; i < arr.length; i++) {
     const file = arr[i];
-    setProgress(Math.round((i / arr.length) * 90), `Uploading ${i+1}/${arr.length}: ${file.name}`);
+    setProgress(Math.round((i / arr.length) * 85), `Uploading ${i + 1}/${arr.length}: ${file.name}`);
     try {
       const data = await resizeAndEncode(file);
-      const img  = {
-        id:   Date.now() + '_' + Math.random().toString(36).slice(2),
+      const id   = `img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const record = {
+        id,
         name: file.name.replace(/\.[^.]+$/, ''),
         ext:  file.name.split('.').pop(),
         type: file.type,
         size: file.size,
         ts:   Date.now(),
-        data  // base64 data URL
+        data  // full base64 data URL
       };
-      await window.fbSaveImage(img);
-      toast('✓ Saved: ' + img.name);
+      await set(ref(db, `gpt-images/${id}`), record);
+      toast(`✓ Saved: ${record.name}`);
     } catch (e) {
-      toast('✗ Failed: ' + file.name);
-      console.error(e);
+      toast(`✗ Failed: ${file.name}`);
+      console.error('Upload error:', e);
     }
   }
   setProgress(100, 'Done!');
   setTimeout(() => { showProgress(false); setProgress(0, ''); }, 800);
 }
 
+/* ── Delete ── */
 async function deleteImage(id) {
-  await window.fbDeleteImage(id);
-  if (selected === id) selected = null;
-  toast('Image deleted.');
+  try {
+    await remove(ref(db, `gpt-images/${id}`));
+    if (selected === id) selected = null;
+    toast('Image deleted.');
+  } catch(e) {
+    toast('Delete failed.'); console.error(e);
+  }
 }
 
+/* ── Select ── */
 function selectImage(id) {
   selected = id;
   render();
 }
 
+/* ── Rename ── */
 async function renameImage(id, newName) {
   if (!newName.trim()) return;
-  await window.fbRename(id, newName.trim());
-  toast('Renamed to: ' + newName.trim());
+  try {
+    await update(ref(db, `gpt-images/${id}`), { name: newName.trim() });
+    toast(`Renamed to: ${newName.trim()}`);
+  } catch(e) {
+    toast('Rename failed.'); console.error(e);
+  }
 }
 
+/* ── Download ── */
 function downloadImage(id) {
   const img = images.find(i => i.id === id);
   if (!img?.data) return;
   const a = document.createElement('a');
-  a.href = img.data; a.download = img.name + '.' + (img.ext || 'png'); a.click();
+  a.href = img.data; a.download = `${img.name}.${img.ext || 'jpg'}`; a.click();
   toast('Downloading…');
 }
 
+/* ── Copy as image ── */
 async function copyImage(id) {
   const img = images.find(i => i.id === id);
-  if (!img?.data) { toast('Image not loaded.'); return; }
+  if (!img?.data) { toast('Image not available.'); return; }
   try {
     const res  = await fetch(img.data);
     const blob = await res.blob();
@@ -345,28 +318,36 @@ async function copyImage(id) {
       try {
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
         toast('✓ Image copied to clipboard!');
-      } catch(e) {
-        toast('⚠ Clipboard blocked — use Chrome or Edge.');
+      } catch {
+        toast('⚠ Clipboard blocked — use Chrome/Edge.');
       }
     }, 'image/png');
-  } catch(e) {
-    toast('⚠ Could not copy.'); console.error(e);
-  }
+  } catch(e) { toast('⚠ Copy failed.'); console.error(e); }
 }
 
+/* ── Copy Base64 ── */
 function copyBase64(id) {
   const img = images.find(i => i.id === id);
-  if (!img?.data) { toast('Image not loaded.'); return; }
+  if (!img?.data) { toast('Image not available.'); return; }
   navigator.clipboard.writeText(img.data)
     .then(() => toast('Base64 copied!'))
     .catch(() => toast('⚠ Clipboard denied.'));
 }
 
-/* ── Render ── */
+/* ── Expose to inline onclick handlers ── */
+window.selectImage  = selectImage;
+window.deleteImage  = deleteImage;
+window.renameImage  = renameImage;
+window.downloadImage = downloadImage;
+window.copyImage    = copyImage;
+window.copyBase64   = copyBase64;
+
+/* ── Render sidebar ── */
 function renderSidebar() {
   const list     = document.getElementById('imageList');
   const filtered = getFiltered();
   document.getElementById('countBadge').textContent = images.length || '';
+
   if (images.length === 0) {
     list.innerHTML = '<div class="empty-list">No images yet.<br>Upload one to begin.</div>';
     return;
@@ -377,7 +358,7 @@ function renderSidebar() {
   }
   list.innerHTML = filtered.map(img => `
     <div class="image-item ${selected === img.id ? 'active' : ''}" onclick="selectImage('${img.id}')">
-      <img class="image-thumb" src="${img.data || ''}" alt="${img.name}">
+      <img class="image-thumb" src="${img.data}" alt="${img.name}">
       <div class="image-info">
         <div class="image-name">${img.name}</div>
         <div class="image-meta">${fmtBytes(img.size)}</div>
@@ -386,6 +367,7 @@ function renderSidebar() {
     </div>`).join('');
 }
 
+/* ── Render main ── */
 function renderMain() {
   const canvas   = document.getElementById('canvas');
   const titleEl  = document.getElementById('mainTitle');
@@ -397,7 +379,7 @@ function renderMain() {
     canvas.innerHTML  = `
       <div class="single-view">
         <div class="single-img-panel">
-          <img src="${selImg.data || ''}" alt="${selImg.name}">
+          <img src="${selImg.data}" alt="${selImg.name}">
         </div>
         <div class="single-info-panel">
           <div class="info-label">Name</div>
@@ -425,7 +407,7 @@ function renderMain() {
         <div class="welcome-icon">🖼</div>
         <h1>GPT Images<em>Your Personal Image Vault</em></h1>
         <div class="divider"></div>
-        <p>Upload images from the sidebar. Each image is saved as Base64 in Firebase and instantly available across all devices.</p>
+        <p>Upload images from the sidebar. Each image is saved as Base64 in Firebase and available across all devices.</p>
       </div>`;
     return;
   }
@@ -435,7 +417,7 @@ function renderMain() {
   if (viewMode === 'grid') {
     canvas.innerHTML = `<div class="grid">${filtered.map((img, i) => `
       <div class="grid-card ${selected === img.id ? 'active' : ''}" style="animation-delay:${i * 0.05}s" onclick="selectImage('${img.id}')">
-        <div class="card-img-wrap"><img src="${img.data || ''}" alt="${img.name}" loading="lazy"></div>
+        <div class="card-img-wrap"><img src="${img.data}" alt="${img.name}"></div>
         <div class="card-body">
           <div class="card-name">${img.name}</div>
           <div class="card-meta">${fmtBytes(img.size)} · ${fmtDate(img.ts)}</div>
@@ -444,7 +426,7 @@ function renderMain() {
   } else {
     canvas.innerHTML = `<div class="list-view">${filtered.map((img, i) => `
       <div class="list-row ${selected === img.id ? 'active' : ''}" style="animation-delay:${i * 0.04}s" onclick="selectImage('${img.id}')">
-        <img src="${img.data || ''}" alt="${img.name}">
+        <img src="${img.data}" alt="${img.name}">
         <div class="list-info">
           <div class="list-name">${img.name}</div>
           <div class="list-meta">${fmtBytes(img.size)} · ${fmtDate(img.ts)}</div>
@@ -456,7 +438,7 @@ function renderMain() {
 
 function render() { renderSidebar(); renderMain(); }
 
-/* ── Events ── */
+/* ── Wire up controls ── */
 document.getElementById('fileInput').addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
 const uz = document.getElementById('uploadZone');
 uz.addEventListener('dragover',  e => { e.preventDefault(); uz.classList.add('drag-over'); });
@@ -466,15 +448,17 @@ document.getElementById('searchInput').addEventListener('input', e => { searchQ 
 document.getElementById('btnGrid').addEventListener('click', () => { viewMode = 'grid'; document.getElementById('btnGrid').classList.add('active'); document.getElementById('btnList').classList.remove('active'); render(); });
 document.getElementById('btnList').addEventListener('click', () => { viewMode = 'list'; document.getElementById('btnList').classList.add('active'); document.getElementById('btnGrid').classList.remove('active'); render(); });
 
-/* ── Firebase callback ── */
-window._onImagesUpdate = (imgs) => {
-  images = imgs;
+/* ── Firebase real-time listener — runs inside module so timing is guaranteed ── */
+onValue(ref(db, 'gpt-images'), (snap) => {
+  const val = snap.val();
+  images = val ? Object.values(val).sort((a, b) => b.ts - a.ts) : [];
+  // Deselect if deleted
   if (selected && !images.find(i => i.id === selected)) selected = null;
   render();
-};
-
-window.addEventListener('firebase-ready', render);
-render();
+}, (err) => {
+  console.error('Firebase read error:', err);
+  toast('⚠ Firebase connection error: ' + err.message);
+});
 </script>
 </body>
 </html>
